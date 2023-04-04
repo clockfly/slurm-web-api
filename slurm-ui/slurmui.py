@@ -14,12 +14,13 @@ pymysql.install_as_MySQLdb()
 DB_HOST = 'localhost'
 DB_USER = 'slurm'
 DB_PASS = os.environ.get('SLURM_DB_PASS', 'AlsoReplaceWithASecurePasswordInTheVault')
+SLURM_CLUSTER_NAME = os.environ.get('SLURM_CLUSTER_NAME', 'deepops')
 DB_NAME = 'slurm_acct_db'
-ASSOC_TABLE_NAME = 'nebula_assoc_table'
-JOB_TABLE_NAME = 'nebula_job_table'
+ASSOC_TABLE_NAME = SLURM_CLUSTER_NAME + '_assoc_table'
+JOB_TABLE_NAME = SLURM_CLUSTER_NAME + '_job_table'
 
 app = Flask(__name__, static_folder='static', static_url_path='')
-app.config["DEBUG"] = True
+app.config["DEBUG"] = False
 
 api = Api(app)
 
@@ -43,7 +44,6 @@ class Slurm_Queue(Resource):
     def get(self):
         j = pyslurm.job()
         data = j.get()
-        print(data)
         for id,job in data.items():
             job['user_name'] = pwd.getpwuid(job['user_id'])[0]
         return data
@@ -156,7 +156,6 @@ class Job(Base):
 
 class UserAssocApi(Resource):
     def get(self):
-        print("VVVVVVVVVVVVVVVV")
         parser =reqparse.RequestParser()
         parser.add_argument('name')
         args = parser.parse_args()
@@ -185,7 +184,6 @@ class JobHistoryApi(Resource):
         parser.add_argument('jobname', location='args')
         parser.add_argument('partition', location='args')
         parser.add_argument('jobid', type=int, location='args')
-        print("DDDDDDDD")
         args = parser.parse_args()
         criterion = list()
 

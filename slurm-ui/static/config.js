@@ -6,5 +6,7 @@ var apiUrl = {
   nodes : "/nodes",
   stats : "/stats"
 };
-var queueStatusUrl = "http://astromon.wr.usgs.gov/dashboard/solo/db/slurm-stats?panelId=2&fullscreen&from=now-12h&to=now&theme=light";
+
+var currentIP = window.location.hostname;
+var queueStatusUrl = "http://" + currentIP + ":3000/d-solo/8Y16qWYVk/slurm-dashboard?orgId=1&refresh=30s&theme=light&panelId=2&from=now-12h";
 
