@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_restful import Resource, reqparse, Api
 import pwd
@@ -12,7 +13,7 @@ pymysql.install_as_MySQLdb()
 
 DB_HOST = 'localhost'
 DB_USER = 'slurm'
-DB_PASS = 'AlsoReplaceWithASecurePasswordInTheVault'
+DB_PASS = os.environ.get('SLURM_DB_PASS', 'AlsoReplaceWithASecurePasswordInTheVault')
 DB_NAME = 'slurm_acct_db'
 ASSOC_TABLE_NAME = 'nebula_assoc_table'
 JOB_TABLE_NAME = 'nebula_job_table'
@@ -172,18 +173,19 @@ class JobHistoryApi(Resource):
 
     def get(self):
         parser =reqparse.RequestParser()
-        parser.add_argument('limit', type=int, default=10)
-        parser.add_argument('offset', type=int, default=0)
-        parser.add_argument('user')
-        parser.add_argument('associd', type=int, default=None)
-        parser.add_argument('state', type=int, default=None)
-        parser.add_argument('startbefore')
-        parser.add_argument('startafter')
-        parser.add_argument('endafter')
-        parser.add_argument('endbefore')
-        parser.add_argument('jobname')
-        parser.add_argument('partition')
-        parser.add_argument('jobid', type=int)
+        parser.add_argument('limit', type=int, default=10, location='args')
+        parser.add_argument('offset', type=int, default=0, location='args')
+        parser.add_argument('user', location='args')
+        parser.add_argument('associd', type=int, default=None, location='args')
+        parser.add_argument('state', type=int, default=None, location='args')
+        parser.add_argument('startbefore', location='args')
+        parser.add_argument('startafter', location='args')
+        parser.add_argument('endafter', location='args')
+        parser.add_argument('endbefore', location='args')
+        parser.add_argument('jobname', location='args')
+        parser.add_argument('partition', location='args')
+        parser.add_argument('jobid', type=int, location='args')
+        print("DDDDDDDD")
         args = parser.parse_args()
         criterion = list()
 
@@ -215,12 +217,9 @@ class JobHistoryApi(Resource):
             jd = job.to_dict()
             jd['user_name'] = users.get(jd['id_assoc'], "")
             rlist.append(jd)
-        return       
+        return rlist      
 
-
-if __name__ == '__main__':
-
-
+def start():
     @app.teardown_appcontext
     def shutdown_session(exception=None):
         db_session.remove()
@@ -236,3 +235,9 @@ if __name__ == '__main__':
     api.add_resource(Slurm_Statistics, '/stats')
     app.run(host="0.0.0.0", port=45000)
 
+@app.route('/')
+def index():
+    return app.send_static_file('index.html')
+
+if __name__ == '__main__':
+    start()
